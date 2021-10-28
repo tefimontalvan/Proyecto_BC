@@ -2,14 +2,44 @@ import express from "express";
 import {
   getCartas,
   postCarta,
-  getCartaPorNombre,
-  getCartaPorId,
   getCartasId,
   deleteCartaPorId,
   putCartaPorId,
+  getEquipos,
+  getFechas,
+  getRoles,
+  getRarezas,
 } from "../controllers/cartas.controller.js";
 
 const CartasRouter = express.Router();
+
+CartasRouter.get("/equipos", async (req, res) => {
+  const datosEquipos = await (await getEquipos()).recordset;
+
+  if (datosEquipos) return res.json({ equipos: datosEquipos });
+  return res.status(400).json("No se pudieron obtener los equipos");
+});
+
+CartasRouter.get("/rarezas", async (req, res) => {
+  const datosRarezas = await (await getRarezas()).recordset;
+
+  if (datosRarezas) return res.json({ rarezas: datosRarezas });
+  return res.status(400).json("No se pudieron obtener las rarezas");
+});
+
+CartasRouter.get("/fechas", async (req, res) => {
+  const datosFechas = await (await getFechas()).recordset;
+
+  if (datosFechas) return res.json({ fechas: datosFechas });
+  return res.status(400).json("No se pudieron obtener las rarezas");
+});
+
+CartasRouter.get("/roles", async (req, res) => {
+  const datosRoles = await (await getRoles()).recordset;
+
+  if (datosRoles) return res.json({ roles: datosRoles });
+  return res.status(400).json("No se pudieron obtener los roles");
+});
 
 CartasRouter.get("/cartas", async (req, res) => {
   const datosCartas = await (await getCartas()).recordset;
@@ -31,7 +61,6 @@ CartasRouter.post("/nueva", async (req, res) => {
     rolJugador,
     fechaSalida,
   } = req.body;
-  console.log({ body: req.body });
 
   if (
     !nombreJugador ||
@@ -64,54 +93,15 @@ CartasRouter.post("/nueva", async (req, res) => {
   res.status(400).json("La carta no ha podido ser añadida");
 });
 
-CartasRouter.get("/buscar", async (req, res) => {
-  const { nombreABuscar } = req.body;
+CartasRouter.post("/eliminar", async (req, res) => {
+  const { idCarta } = req.body;
 
-  if (!nombreABuscar) {
-    res.status(400).send("Especifique el nombre del jugador");
-    return;
-  }
-
-  const cartaBuscada = await (await getCartaPorNombre(nombreABuscar)).recordset;
-
-  if (cartaBuscada) {
-    res.json({ cartaEncontrada: cartaBuscada });
-    return;
-  }
-
-  res.status(400).json("La carta que solicitó no ha podido ser encontrada");
-});
-
-//buscarPorId
-CartasRouter.get("/buscarPorId", async (req, res) => {
-  const { idABuscar } = req.body;
-
-  if (!idABuscar) {
-    res.status(400).send("Especifique el idCarta");
-    return;
-  }
-
-  const cartaBuscada = await (await getCartaPorId(idABuscar)).recordset;
-
-  if (cartaBuscada) {
-    res.json({ cartaEncontrada: cartaBuscada });
-    return;
-  }
-
-  res.status(400).json("La carta que solicitó no ha podido ser encontrada");
-});
-
-CartasRouter.delete("/eliminar", async (req, res) => {
-  const { idCartaAEliminar } = req.body;
-
-  if (!idCartaAEliminar) {
+  if (!idCarta) {
     res.status(400).send("Especifique el id de la carta a eliminar");
     return;
   }
 
-  const cartaBorrada = await (
-    await deleteCartaPorId(idCartaAEliminar)
-  ).recordset[0];
+  const cartaBorrada = await (await deleteCartaPorId(idCarta)).recordset[0];
 
   if (cartaBorrada) {
     res.json({ cartaEliminada: cartaBorrada });

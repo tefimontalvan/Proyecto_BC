@@ -3,12 +3,87 @@ import { useDispatch } from "react-redux";
 import { editarCartaAction } from "../actions/cartaActions";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
+import moment from "moment";
 
 import Card from "@mui/material/Card";
 import Input from "@mui/material/Input";
-import { Button } from "@mui/material";
+import {
+  Button,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  FormControl,
+} from "@mui/material";
+import { InputLabel } from "@material-ui/core";
 
 const EditarCarta = (props: any) => {
+  const ITEM_HEIGHT = 48;
+  const ITEM_PADDING_TOP = 8;
+  const MenuProps = {
+    PaperProps: {
+      style: {
+        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+        width: 250,
+      },
+    },
+  };
+
+  const [roles, setRoles] = useState<any>([]);
+  const pedirDatosRoles = async () => {
+    const datosRoles = await axios.get<any>(
+      "http://localhost:4000/inicio/roles/"
+    );
+    if (datosRoles.data) {
+      setRoles(datosRoles.data.roles);
+    }
+  };
+
+  const [equipos, setEquipos] = useState<any>({
+    nombre: "",
+  });
+  const pedirDatosEquipos = async () => {
+    const datosEquipos = await axios.get<any>(
+      "http://localhost:4000/inicio/equipos/"
+    );
+    console.log({ datosEquipos });
+    if (datosEquipos.data) {
+      setEquipos(datosEquipos.data);
+    }
+  };
+
+  console.log({ equipos });
+
+  const [rarezas, setRarezas] = useState<any>([]);
+  const pedirDatosRarezas = async () => {
+    const datosRarezas = await axios.get<any>(
+      "http://localhost:4000/inicio/rarezas/"
+    );
+    if (datosRarezas.data) {
+      setRarezas(datosRarezas.data.rarezas);
+    }
+  };
+
+  const [series, setSeries] = useState<any>([]);
+  const pedirDatosSeries = async () => {
+    const datosSeries = await axios.get<any>(
+      "http://localhost:4000/inicio/fechas/"
+    );
+    if (datosSeries.data) {
+      setSeries(datosSeries.data.fechas);
+    }
+  };
+
+  const seriesmap = series.map((serie: any) =>
+    moment(serie.fechaSalida).year()
+  );
+
+  useEffect(() => {
+    pedirDatosEquipos();
+    pedirDatosRarezas();
+    pedirDatosRoles();
+    pedirDatosSeries();
+  }, []);
+
   const dispatch = useDispatch();
   const history = useHistory();
 
@@ -49,8 +124,42 @@ const EditarCarta = (props: any) => {
     pedirDatos();
   }, []);
 
+  console.log({ cartaActual });
+
+  const [equipo, setEquipo] = useState<any>(cartaActual.equipo);
+  const [rol, setRol] = useState<any>(cartaActual.rolJugador);
+  const [rareza, setRareza] = useState<any>(cartaActual.rareza);
+  const [serie, setSerie] = useState<any>(
+    moment(cartaActual.fechaActual).year()
+  );
+
+  useEffect(() => {
+    for (let i = 0; i < equipos.length; i++) {
+      if (cartaActual.equipo === equipos[i].nombre) {
+        setEquipo(equipos[i]);
+      }
+    }
+    for (let i = 0; i < roles.length; i++) {
+      if (cartaActual.rolJugador === roles[i].nombre) {
+        setRol(roles[i]);
+      }
+    }
+    for (let i = 0; i < rarezas.length; i++) {
+      if (cartaActual.rareza === rarezas[i].nombre) {
+        setRareza(rarezas[i]);
+      }
+    }
+    for (let i = 0; i < series.length; i++) {
+      if (cartaActual.fechaActual === series[i].fechaSalida) {
+        setSerie(series[i]);
+      }
+    }
+  }, []);
+
+  console.log({ cartaActual });
+
   // Leer los datos del formulario
-  const onChangeFormulario = (e: any) => {
+  const onChangeFormulario = (e: SelectChangeEvent) => {
     setCartaActual({
       ...cartaActual,
       [e.target.name]: e.target.value,
@@ -78,7 +187,7 @@ const EditarCarta = (props: any) => {
               type="text"
               name="nombreJugador"
               value={cartaActual?.nombreJugador}
-              onChange={onChangeFormulario}
+              //onChange={onChangeFormulario}
             />
           </div>
 
@@ -90,11 +199,11 @@ const EditarCarta = (props: any) => {
               type="text"
               name="apellidoJugador"
               value={cartaActual?.apellidoJugador}
-              onChange={onChangeFormulario}
+              //onChange={onChangeFormulario}
             />
           </div>
 
-          <div style={styles.input}>
+          {/*           <div style={styles.input}>
             <label style={styles.textCard}>Equipo</label>
             <Input
               placeholder="Equipo"
@@ -104,6 +213,28 @@ const EditarCarta = (props: any) => {
               value={cartaActual?.equipo}
               onChange={onChangeFormulario}
             />
+          </div> */}
+
+          <div style={styles.input}>
+            <FormControl sx={{ m: 1, width: 240 }}>
+              <InputLabel style={styles.textCard} id="demo-multiple-name-label">
+                Equipo
+              </InputLabel>
+              <Select
+                labelId="demo-multiple-name-label"
+                id="demo-multiple-name"
+                multiple
+                value={equipo}
+                onChange={onChangeFormulario}
+                MenuProps={MenuProps}
+              >
+                {equipos.map((elemento: any) => (
+                  <MenuItem key={elemento} value={elemento.nombre}>
+                    {elemento.nombre}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
 
           <div style={styles.input}>
@@ -114,7 +245,7 @@ const EditarCarta = (props: any) => {
               type="text"
               name="rareza"
               value={cartaActual?.rareza}
-              onChange={onChangeFormulario}
+              //onChange={onChangeFormulario}
             />
           </div>
 
@@ -126,7 +257,7 @@ const EditarCarta = (props: any) => {
               type="text"
               name="rolJugador"
               value={cartaActual?.rolJugador}
-              onChange={onChangeFormulario}
+              //onChange={onChangeFormulario}
             />
           </div>
 
@@ -138,7 +269,7 @@ const EditarCarta = (props: any) => {
               type="text"
               name="fechaSalida"
               value={cartaActual?.fechaSalida}
-              onChange={onChangeFormulario}
+              //onChange={onChangeFormulario}
             />
           </div>
 
@@ -150,7 +281,7 @@ const EditarCarta = (props: any) => {
               type="text"
               name="foto"
               value={cartaActual?.foto}
-              onChange={onChangeFormulario}
+              //onChange={onChangeFormulario}
             />
           </div>
           <div style={styles.button}>

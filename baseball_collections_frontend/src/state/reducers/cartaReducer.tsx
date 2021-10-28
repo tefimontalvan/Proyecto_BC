@@ -22,6 +22,7 @@ const initialState = {
   loading: false,
   cartaEliminar: null,
   cartaEditar: null,
+  cartaBuscar: null,
 };
 
 interface payloadEstado {
@@ -72,7 +73,7 @@ const cartaReducer = (state: any = initialState, action: Action) => {
       return {
         ...state,
         loading: false,
-        cartas: [...state.cartas, action.payload],
+        cartas: [...state.cartas.cartas, action.payload],
       };
 
     case DESCARGA_CARTAS_ERROR:
@@ -101,19 +102,13 @@ const cartaReducer = (state: any = initialState, action: Action) => {
     case CARTA_ELIMINADA_EXITO:
       return {
         ...state,
-        cartas: state.cartas.filter(
-          (carta: cartaInterface) => carta.idCarta !== state.cartaEliminar
-        ),
         cartaEliminar: null,
       };
 
     case CARTA_ENCONTRADA_EXITO:
       return {
         ...state,
-        cartas: state.cartas.filter(
-          (carta: cartaInterface) => carta.idCarta !== state.cartaBuscar
-        ),
-        cartaEliminar: null,
+        cartaBuscar: null,
       };
 
     case OBTENER_CARTA_EDITAR:
@@ -126,10 +121,10 @@ const cartaReducer = (state: any = initialState, action: Action) => {
       return {
         ...state,
         cartaEditar: null,
-        cartas: state.cartas.map(
+        /*         cartas: state.cartas.cartas.cartas.map(
           (carta: cartaInterface) =>
             carta.idCarta === action.payload.idCarta((carta = action.payload))
-        ),
+        ), */
       };
 
     default:

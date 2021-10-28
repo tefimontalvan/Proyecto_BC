@@ -13,6 +13,26 @@ const getCartas = () => {
   return cartas;
 };
 
+const getEquipos = () => {
+  const cartas = executeStatement(`SELECT nombre FROM Equipo`);
+  return cartas;
+};
+
+const getRoles = () => {
+  const cartas = executeStatement(`SELECT nombre FROM RolJugador`);
+  return cartas;
+};
+
+const getFechas = () => {
+  const cartas = executeStatement(`SELECT fechaSalida FROM Serie`);
+  return cartas;
+};
+
+const getRarezas = () => {
+  const cartas = executeStatement(`SELECT nombre FROM Rareza`);
+  return cartas;
+};
+
 const getCartasId = async (req, res) => {
   const { id } = req.params;
   const cartas = executeStatement(
@@ -42,32 +62,28 @@ const postCarta = async (
   ).recordset[0].idJugador;
   console.log(idJugador);
 
-  await executeStatement(`INSERT INTO Equipo (nombre) VALUES ('${equipo}')`);
-
   const idEquipo = (
-    await executeStatement(`SELECT IDENT_CURRENT('Equipo') as idEquipo`)
+    await executeStatement(
+      `SELECT idEquipo FROM Equipo WHERE nombre = '${equipo}'`
+    )
   ).recordset[0].idEquipo;
 
-  await executeStatement(`INSERT INTO Rareza (nombre) VALUES ('${rareza}')`);
-
   const idRareza = (
-    await executeStatement(`SELECT IDENT_CURRENT('Rareza') as idRareza`)
+    await executeStatement(
+      `SELECT idRareza FROM Rareza WHERE nombre = '${rareza}'`
+    )
   ).recordset[0].idRareza;
 
-  await executeStatement(
-    `INSERT INTO RolJugador (nombre) VALUES ('${rolJugador}')`
-  );
-
   const idRolJugador = (
-    await executeStatement(`SELECT IDENT_CURRENT('RolJugador') as idRolJugador`)
+    await executeStatement(
+      `SELECT idRolJugador FROM RolJugador WHERE nombre = '${rolJugador}'`
+    )
   ).recordset[0].idRolJugador;
 
-  await executeStatement(
-    `INSERT INTO Serie (fechaSalida) VALUES ('${fechaSalida}')`
-  );
-
   const idSerie = (
-    await executeStatement(`SELECT IDENT_CURRENT('Serie') as idSerie`)
+    await executeStatement(
+      `SELECT idSerie FROM Serie WHERE YEAR(fechaSalida) = '${fechaSalida}'`
+    )
   ).recordset[0].idSerie;
 
   await executeStatement(
@@ -92,20 +108,6 @@ const postCarta = async (
   ).recordset[0];
 
   return nuevaCarta;
-};
-
-const getCartaPorNombre = (nombreABuscar) => {
-  const cartaBuscada = executeStatement(
-    `${consultaGenerica} WHERE Jugador.nombre = '${nombreABuscar}' AND activo = 1`
-  );
-  return cartaBuscada;
-};
-
-const getCartaPorId = (id) => {
-  const cartaBuscada = executeStatement(
-    `${consultaGenerica} WHERE Carta.idCarta = '${id}' AND activo = 1`
-  );
-  return cartaBuscada;
 };
 
 const deleteCartaPorId = async (idCartaAEliminar) => {
@@ -138,24 +140,32 @@ const putCartaPorId = async (
     `UPDATE Jugador SET nombre = '${nombreJugador}', apellido = '${apellidoJugador}' FROM Carta JOIN Jugador ON Jugador.idJugador = Carta.idJugador WHERE idCarta = ${idCartaAModificar}`
   );
 
-  await executeStatement(
-    `UPDATE Equipo SET nombre = '${equipo}' FROM Carta JOIN Equipo ON Equipo.idEquipo = Carta.idEquipo WHERE idCarta = ${idCartaAModificar}`
-  );
+  const idEquipo = (
+    await executeStatement(
+      `SELECT idEquipo FROM Equipo WHERE nombre = '${equipo}'`
+    )
+  ).recordset[0].idEquipo;
+
+  const idRareza = (
+    await executeStatement(
+      `SELECT idRareza FROM Rareza WHERE nombre = '${rareza}'`
+    )
+  ).recordset[0].idRareza;
+
+  const idRolJugador = (
+    await executeStatement(
+      `SELECT idRolJugador FROM RolJugador WHERE nombre = '${rolJugador}'`
+    )
+  ).recordset[0].idRolJugador;
+
+  const idSerie = (
+    await executeStatement(
+      `SELECT idSerie FROM Serie WHERE YEAR(fechaSalida) = '${fechaSalida}'`
+    )
+  ).recordset[0].idSerie;
 
   await executeStatement(
-    `UPDATE Rareza SET nombre = '${rareza}' FROM Carta JOIN Rareza ON Rareza.idRareza = Carta.idRareza WHERE idCarta = ${idCartaAModificar}`
-  );
-
-  await executeStatement(
-    `UPDATE Carta SET foto = '${foto}' WHERE idCarta = ${idCartaAModificar}`
-  );
-
-  await executeStatement(
-    `UPDATE RolJugador SET nombre = '${rolJugador}' FROM Carta JOIN RolJugador ON RolJugador.idRolJugador = Carta.idRolJugador WHERE idCarta = ${idCartaAModificar}`
-  );
-
-  await executeStatement(
-    `UPDATE Serie SET fechaSalida = CONVERT(DATETIME, '${fechaSalida}') FROM Carta JOIN Serie ON Serie.idSerie = Carta.idSerie WHERE idCarta = ${idCartaAModificar}`
+    `UPDATE Carta SET foto = '${foto}', idEquipo = ${idEquipo}, idSerie = ${idSerie}, idRolJugador = ${idRolJugador}, idRareza = ${idRareza} WHERE idCarta = ${idCartaAModificar}`
   );
 
   const cartaModificada = await executeStatement(
@@ -168,9 +178,11 @@ const putCartaPorId = async (
 export {
   getCartas,
   postCarta,
-  getCartaPorNombre,
-  getCartaPorId,
   getCartasId,
   deleteCartaPorId,
   putCartaPorId,
+  getEquipos,
+  getRarezas,
+  getRoles,
+  getFechas,
 };

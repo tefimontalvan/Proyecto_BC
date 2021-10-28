@@ -12,6 +12,9 @@ import {
   COMENZAR_EDICION_CARTA,
   CARTA_EDITADA_EXITO,
   CARTA_EDITADA_ERROR,
+  BUSCAR_CARTA,
+  CARTA_ENCONTRADA_EXITO,
+  CARTA_ENCONTRADA_ERROR,
 } from "../types";
 import { Dispatch } from "redux";
 import axios from "axios";
@@ -83,7 +86,6 @@ export const crearNuevaCartaAction =
       );
 
       //si todo sale bien actualizar el state
-      //AGREGAR COMENTADO CUANDO DEVUELVA CARTAS.
       dispatch(agregarCartaExito(cartaNueva.data));
 
       //Alerta
@@ -128,14 +130,7 @@ export const obtenerCartasAction =
 
     try {
       const listaCartas = await axios.get<cartaInterface[]>(
-        "http://localhost:4000/inicio/cartas",
-        {
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/json",
-          },
-          method: "GET",
-        }
+        "http://localhost:4000/inicio/cartas"
       );
 
       dispatch(descargarCartaExito(listaCartas.data));
@@ -168,20 +163,13 @@ export const borrarCartaAction =
     try {
       await axios.post<cartaInterface[]>(
         "http://localhost:4000/inicio/eliminar",
-        {
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/json",
-          },
-          method: "DELETE",
-          body: JSON.stringify(carta),
-        }
+        carta
       );
 
       dispatch(eliminarCartaExito());
 
       //Si se elimina mostrar alerta
-      Swal.fire("Eliminado!", "Su carta ha sido eliminado.", "success");
+      Swal.fire("Eliminado!", "Su carta ha sido eliminada.", "success");
     } catch (error) {
       console.log({ error });
       dispatch(eliminarCartaError(true));
@@ -199,6 +187,32 @@ const eliminarCartaExito = () => ({
 
 const eliminarCartaError = (estado: boolean) => ({
   type: CARTA_ELIMINADA_ERROR,
+  payload: estado,
+});
+
+export const buscarPorNombreAction =
+  (carta: cartaInterface[]) =>
+  async (dispatch: Dispatch<CartaDispatchIntefaces>) => {
+    dispatch(buscarCarta(carta));
+    try {
+      dispatch(cartaEncontradaExito());
+    } catch (error) {
+      console.log({ error });
+      dispatch(cartaEncontradaError(true));
+    }
+  };
+
+const buscarCarta = (carta: cartaInterface[]) => ({
+  type: BUSCAR_CARTA,
+  payload: carta,
+});
+
+const cartaEncontradaExito = () => ({
+  type: CARTA_ENCONTRADA_EXITO,
+});
+
+const cartaEncontradaError = (estado: boolean) => ({
+  type: CARTA_ENCONTRADA_ERROR,
   payload: estado,
 });
 
@@ -226,7 +240,6 @@ export const editarCartaAction =
         "http://localhost:4000/inicio/modificar",
         carta
       );
-      //AGREGAR COMENTADO CUANDO DEVUELVA CARTA
       dispatch(editarCartaExito(cartaEditada.data.cartaModificada));
       Swal.fire(
         "Carta editada!",
