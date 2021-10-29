@@ -2,6 +2,7 @@ import React, { Fragment, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import moment from "moment";
 import { useHistory } from "react-router-dom";
+import { styleInicio } from "../styles/styles";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -93,51 +94,56 @@ const Cartas = () => {
   }, [cartasState]);
 
   //BUSCAR CARTA/S.
-  //Valor de la carta/s buscada/s que si cambia ejecuta el action de buscarCarta.
-  const [cartaE, setCartaE] = useState<cartaInterface[]>(cartasState);
 
+  const [cartaE, setCartaE] = useState<cartaInterface[]>(cartasState);
+  //guarda el valor ingresado por teclado en una variable
   const [nombreJugadorABuscar, guardarNombreJugador] = useState("");
 
-  useEffect(() => {
-    const buscarPorNombre = (carta: cartaInterface[]) =>
-      dispatch(buscarPorNombreAction(carta));
+  //Valor que si cambia ejecuta el action de buscarCarta.
+  const [seBuscoNombre, setSeBuscoNombre] = useState<boolean>();
 
-    buscarPorNombre(cartaE);
-  }, [cartaE]);
+  if (seBuscoNombre === true) {
+    setSeBuscoNombre(false);
+    dispatch(buscarPorNombreAction(cartaE));
+  }
 
+  const onChange = (e: any) => {
+    guardarNombreJugador(e.target.value);
+    filtrarCarta(e.target.value);
+  };
+
+  //Busca en la lista de cartas activas la/s que tengan el nombre ingresado por teclado.
   const filtrarCarta = (valorInput: string) => {
-    const cartaEncontrada = listaCartas?.filter((cartaEncontrada: any) =>
+    const cartasCopia = [...cartasState];
+    const cartaEncontrada = cartasCopia?.filter((cartaEncontrada: any) =>
       new RegExp(valorInput, "i").test(cartaEncontrada.nombreJugador)
     );
     setCartaE(cartaEncontrada);
     setListaCartas(cartaEncontrada);
+    setSeBuscoNombre(true);
   };
 
   return (
     <Fragment>
-      <h2 style={style.text}>Listado de Cartas</h2>
+      <h2 style={styleInicio.text}>Listado de Cartas</h2>
 
-      <InputBase
-        style={style.input}
-        value={nombreJugadorABuscar}
-        sx={{ ml: 1, flex: 1, color: "#d32f2f" }}
-        placeholder="Buscar por nombre"
-        inputProps={{ "aria-label": "search google maps" }}
-        onChange={(e) => guardarNombreJugador(e.target.value)}
-      />
-      <IconButton
-        type="submit"
-        sx={{ p: "10px", color: "#d32f2f" }}
-        aria-label="search"
-        onClick={(e) => filtrarCarta(nombreJugadorABuscar)}
-      >
-        <SearchIcon />
-      </IconButton>
+      <div style={{ display: "inline-flex", alignItems: "center" }}>
+        <InputBase
+          style={styleInicio.input}
+          value={nombreJugadorABuscar}
+          sx={{ ml: 1, flex: 1, color: "#d32f2f" }}
+          placeholder="Buscar por nombre"
+          inputProps={{ "aria-label": "search google maps" }}
+          onChange={onChange}
+        />
 
-      <div style={style.contenedor as React.CSSProperties}>
+        <SearchIcon sx={{ p: "10px", color: "#d32f2f" }} />
+      </div>
+
+      <div style={styleInicio.contenedor as React.CSSProperties}>
         {listaCartas?.map((carta: any) => {
           return (
-            <Card key={carta.idCarta} sx={style.tarjeta}>
+            <Card key={carta.idCarta} sx={styleInicio.tarjeta}>
               <CardMedia
                 component="img"
                 alt="foto jugador"
@@ -150,14 +156,14 @@ const Cartas = () => {
                   gutterBottom
                   variant="h5"
                   component="div"
-                  sx={style.textCard}
+                  sx={styleInicio.textCard}
                 >
                   {carta.nombreJugador} {carta.apellidoJugador}
                 </Typography>
                 <Typography
                   variant="body2"
                   color="text.secondary"
-                  sx={style.textCard}
+                  sx={styleInicio.textCard}
                 >
                   <p>Rol: {carta.rolJugador}</p>
                   <p>Equipo: {carta.equipo}</p>
@@ -191,32 +197,4 @@ const Cartas = () => {
   );
 };
 
-const style = {
-  tarjeta: {
-    width: 245,
-    bgcolor: "#173351",
-    borderColor: "primary.main",
-    display: "grid",
-    margin: 5,
-  },
-  input: {
-    marginLeft: 40,
-  },
-  contenedor: {
-    display: "flex",
-    width: "100%",
-    flexWrap: "wrap",
-  },
-  card: {
-    objectFit: "cover",
-  },
-  text: {
-    color: "#eeeee4",
-    justifyContent: "center",
-    display: "flex",
-  },
-  textCard: {
-    color: "#eeeee4",
-  },
-};
 export default Cartas;

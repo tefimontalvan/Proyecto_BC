@@ -1,33 +1,53 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { editarCartaAction } from "../actions/cartaActions";
-import { useHistory } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
+import { styleFormulario } from "../styles/styles";
 
 import Card from "@mui/material/Card";
 import Input from "@mui/material/Input";
-import {
-  Button,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  FormControl,
-} from "@mui/material";
+import { Button, MenuItem, Select, FormControl } from "@mui/material";
 import { InputLabel } from "@material-ui/core";
 
 const EditarCarta = (props: any) => {
-  const ITEM_HEIGHT = 48;
-  const ITEM_PADDING_TOP = 8;
-  const MenuProps = {
-    PaperProps: {
-      style: {
-        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-        width: 250,
-      },
-    },
+  const dispatch = useDispatch();
+
+  const ariaLabel = { "aria-label": "description" };
+
+  const [cartaActual, setCartaActual] = useState<any>({
+    idCarta: 0,
+    nombreJugador: "",
+    apellidoJugador: "",
+    equipo: "",
+    rareza: "",
+    rolJugador: "",
+    fechaSalida: "",
+    foto: "",
+  });
+
+  //PIDE LOS DATOS DE LA CARTA ACTUAL POR ID.
+  const pedirDatos = async () => {
+    const cartaSeleccionada = await axios.get<any>(
+      "http://localhost:4000/inicio/cartas/" + props.match.params.id
+    );
+
+    const cartaData = cartaSeleccionada.data;
+    const momentFecha = moment(cartaData.fechaSalida).year();
+    //AGREGAR COMENTADO CUANDO DEVUELVA CARTAS
+    setCartaActual({
+      idCarta: cartaData.idCarta,
+      nombreJugador: cartaData.nombreJugador,
+      apellidoJugador: cartaData.apellidoJugador,
+      equipo: cartaData.equipo,
+      rareza: cartaData.rareza,
+      rolJugador: cartaData.rolJugador,
+      fechaSalida: momentFecha,
+      foto: cartaData.foto,
+    });
   };
 
+  //PIDE PROPIEDADES DE LA CARTA.
   const [roles, setRoles] = useState<any>([]);
   const pedirDatosRoles = async () => {
     const datosRoles = await axios.get<any>(
@@ -38,20 +58,15 @@ const EditarCarta = (props: any) => {
     }
   };
 
-  const [equipos, setEquipos] = useState<any>({
-    nombre: "",
-  });
+  const [equipos, setEquipos] = useState<any>([]);
   const pedirDatosEquipos = async () => {
     const datosEquipos = await axios.get<any>(
       "http://localhost:4000/inicio/equipos/"
     );
-    console.log({ datosEquipos });
     if (datosEquipos.data) {
-      setEquipos(datosEquipos.data);
+      setEquipos(datosEquipos.data.equipos);
     }
   };
-
-  console.log({ equipos });
 
   const [rarezas, setRarezas] = useState<any>([]);
   const pedirDatosRarezas = async () => {
@@ -78,88 +93,15 @@ const EditarCarta = (props: any) => {
   );
 
   useEffect(() => {
+    pedirDatos();
     pedirDatosEquipos();
     pedirDatosRarezas();
     pedirDatosRoles();
     pedirDatosSeries();
   }, []);
 
-  const dispatch = useDispatch();
-  const history = useHistory();
-
-  const ariaLabel = { "aria-label": "description" };
-
-  interface cartaInterface {
-    idCarta: number;
-    nombreJugador: string;
-    apellidoJugador: string;
-    equipo: string;
-    rareza: string;
-    rolJugador: string;
-    fechaSalida: string;
-    foto: string;
-  }
-
-  const [cartaActual, setCartaActual] = useState<any>({
-    idCarta: 0,
-    nombreJugador: "",
-    apellidoJugador: "",
-    equipo: "",
-    rareza: "",
-    rolJugador: "",
-    fechaSalida: "",
-    foto: "",
-  });
-
-  const pedirDatos = async () => {
-    const cartaSeleccionada = await axios.get<cartaInterface[]>(
-      "http://localhost:4000/inicio/cartas/" + props.match.params.id
-    );
-
-    //AGREGAR COMENTADO CUANDO DEVUELVA CARTAS
-    setCartaActual(cartaSeleccionada.data);
-  };
-
-  useEffect(() => {
-    pedirDatos();
-  }, []);
-
-  console.log({ cartaActual });
-
-  const [equipo, setEquipo] = useState<any>(cartaActual.equipo);
-  const [rol, setRol] = useState<any>(cartaActual.rolJugador);
-  const [rareza, setRareza] = useState<any>(cartaActual.rareza);
-  const [serie, setSerie] = useState<any>(
-    moment(cartaActual.fechaActual).year()
-  );
-
-  useEffect(() => {
-    for (let i = 0; i < equipos.length; i++) {
-      if (cartaActual.equipo === equipos[i].nombre) {
-        setEquipo(equipos[i]);
-      }
-    }
-    for (let i = 0; i < roles.length; i++) {
-      if (cartaActual.rolJugador === roles[i].nombre) {
-        setRol(roles[i]);
-      }
-    }
-    for (let i = 0; i < rarezas.length; i++) {
-      if (cartaActual.rareza === rarezas[i].nombre) {
-        setRareza(rarezas[i]);
-      }
-    }
-    for (let i = 0; i < series.length; i++) {
-      if (cartaActual.fechaActual === series[i].fechaSalida) {
-        setSerie(series[i]);
-      }
-    }
-  }, []);
-
-  console.log({ cartaActual });
-
   // Leer los datos del formulario
-  const onChangeFormulario = (e: SelectChangeEvent) => {
+  const onChangeFormulario = (e: any) => {
     setCartaActual({
       ...cartaActual,
       [e.target.name]: e.target.value,
@@ -169,122 +111,146 @@ const EditarCarta = (props: any) => {
   const submitEditarCarta = (e: any) => {
     e.preventDefault();
     dispatch(editarCartaAction(cartaActual));
-
-    history.push("/");
   };
 
   return (
-    <div style={styles.contenedor}>
-      <Card sx={styles.card}>
-        <h2 style={styles.textCard}>Editar Carta</h2>
+    <div style={styleFormulario.contenedor}>
+      <Card sx={styleFormulario.card}>
+        <h2 style={styleFormulario.textCard}>Editar Carta</h2>
 
         <form onSubmit={submitEditarCarta}>
-          <div style={styles.input}>
-            <label style={styles.textCard}>Nombre Jugador</label>
+          <div style={styleFormulario.input}>
+            <label style={styleFormulario.textCard}>Nombre Jugador</label>
             <Input
               placeholder="Nombre Jugador"
               inputProps={ariaLabel}
               type="text"
               name="nombreJugador"
               value={cartaActual?.nombreJugador}
-              //onChange={onChangeFormulario}
+              onChange={onChangeFormulario}
             />
           </div>
 
-          <div style={styles.input}>
-            <label style={styles.textCard}>Apellido Jugador</label>
+          <div style={styleFormulario.input}>
+            <label style={styleFormulario.textCard}>Apellido Jugador</label>
             <Input
               placeholder="Apellido Jugador"
               inputProps={ariaLabel}
               type="text"
               name="apellidoJugador"
               value={cartaActual?.apellidoJugador}
-              //onChange={onChangeFormulario}
+              onChange={onChangeFormulario}
             />
           </div>
 
-          {/*           <div style={styles.input}>
-            <label style={styles.textCard}>Equipo</label>
-            <Input
-              placeholder="Equipo"
-              inputProps={ariaLabel}
-              type="text"
-              name="equipo"
-              value={cartaActual?.equipo}
-              onChange={onChangeFormulario}
-            />
-          </div> */}
-
-          <div style={styles.input}>
+          <div style={styleFormulario.input}>
             <FormControl sx={{ m: 1, width: 240 }}>
-              <InputLabel style={styles.textCard} id="demo-multiple-name-label">
+              <InputLabel
+                style={styleFormulario.textCard}
+                id="demo-multiple-name-label"
+              >
                 Equipo
               </InputLabel>
               <Select
-                labelId="demo-multiple-name-label"
-                id="demo-multiple-name"
-                multiple
-                value={equipo}
+                name="equipo"
+                value={cartaActual.equipo}
                 onChange={onChangeFormulario}
-                MenuProps={MenuProps}
               >
-                {equipos.map((elemento: any) => (
-                  <MenuItem key={elemento} value={elemento.nombre}>
-                    {elemento.nombre}
-                  </MenuItem>
-                ))}
+                {equipos.map((elemento: any) => {
+                  return (
+                    <MenuItem key={elemento.nombre} value={elemento.nombre}>
+                      {elemento.nombre}
+                    </MenuItem>
+                  );
+                })}
               </Select>
             </FormControl>
           </div>
 
-          <div style={styles.input}>
-            <label style={styles.textCard}>Rareza</label>
-            <Input
-              placeholder="Rareza"
-              inputProps={ariaLabel}
-              type="text"
-              name="rareza"
-              value={cartaActual?.rareza}
-              //onChange={onChangeFormulario}
-            />
+          <div style={styleFormulario.input}>
+            <FormControl sx={{ m: 1, width: 240 }}>
+              <InputLabel
+                style={styleFormulario.textCard}
+                id="demo-multiple-name-label"
+              >
+                Rareza
+              </InputLabel>
+              <Select
+                name="rareza"
+                value={cartaActual.rareza}
+                onChange={onChangeFormulario}
+              >
+                {rarezas.map((elemento: any) => {
+                  return (
+                    <MenuItem key={elemento.nombre} value={elemento.nombre}>
+                      {elemento.nombre}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
           </div>
 
-          <div style={styles.input}>
-            <label style={styles.textCard}>Rol Jugador</label>
-            <Input
-              placeholder="Rol Jugador"
-              inputProps={ariaLabel}
-              type="text"
-              name="rolJugador"
-              value={cartaActual?.rolJugador}
-              //onChange={onChangeFormulario}
-            />
+          <div style={styleFormulario.input}>
+            <FormControl sx={{ m: 1, width: 240 }}>
+              <InputLabel
+                style={styleFormulario.textCard}
+                id="demo-multiple-name-label"
+              >
+                Rol Jugador
+              </InputLabel>
+              <Select
+                name="rolJugador"
+                value={cartaActual.rolJugador}
+                onChange={onChangeFormulario}
+              >
+                {roles.map((elemento: any) => {
+                  return (
+                    <MenuItem key={elemento.nombre} value={elemento.nombre}>
+                      {elemento.nombre}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
           </div>
 
-          <div style={styles.input}>
-            <label style={styles.textCard}>Fecha Salida</label>
-            <Input
-              placeholder="Fecha Salida"
-              inputProps={ariaLabel}
-              type="text"
-              name="fechaSalida"
-              value={cartaActual?.fechaSalida}
-              //onChange={onChangeFormulario}
-            />
+          <div style={styleFormulario.input}>
+            <FormControl sx={{ m: 1, width: 240 }}>
+              <InputLabel
+                style={styleFormulario.textCard}
+                id="demo-multiple-name-label"
+              >
+                Fecha Salida
+              </InputLabel>
+              <Select
+                name="fechaSalida"
+                value={cartaActual.fechaSalida}
+                onChange={onChangeFormulario}
+              >
+                {seriesmap.map((elemento: any) => {
+                  return (
+                    <MenuItem key={elemento} value={elemento}>
+                      {elemento}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
           </div>
 
-          <div style={styles.input}>
-            <label style={styles.textCard}>Foto</label>
+          <div style={styleFormulario.input}>
+            <label style={styleFormulario.textCard}>Foto</label>
             <Input
               placeholder="Foto"
               inputProps={ariaLabel}
               type="text"
               name="foto"
               value={cartaActual?.foto}
-              //onChange={onChangeFormulario}
+              onChange={onChangeFormulario}
             />
           </div>
-          <div style={styles.button}>
+          <div style={styleFormulario.button}>
             <Button
               color="success"
               variant="contained"
@@ -298,38 +264,6 @@ const EditarCarta = (props: any) => {
       </Card>
     </div>
   );
-};
-
-const styles = {
-  card: {
-    borderColor: "primary.main",
-    margin: 5,
-    width: 500,
-    bgcolor: "#173351",
-    padding: 2,
-  },
-  textCard: {
-    color: "#eeeee4",
-    justifyContent: "center",
-    display: "flex",
-    marginTop: 20,
-  },
-  input: {
-    justifyContent: "center",
-    display: "grid",
-  },
-  contenedor: {
-    display: "flex",
-    justifyContent: "center",
-  },
-  button: {
-    display: "flex",
-    justifyContent: "center",
-    marginTop: 20,
-  },
-  msg: {
-    backgroundColor: "#d32f2f",
-  },
 };
 
 export default EditarCarta;

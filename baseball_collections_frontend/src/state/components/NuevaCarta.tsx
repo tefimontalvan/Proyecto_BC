@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import moment from "moment";
 import axios from "axios";
+import { RootStore } from "..";
+import { styleFormulario } from "../styles/styles";
 
 import { crearNuevaCartaAction } from "../actions/cartaActions";
 import { mostrarAlerta, ocultarAlertaAction } from "../actions/alertaActions";
@@ -19,16 +21,9 @@ import {
 import { InputLabel } from "@material-ui/core";
 
 const NuevaCarta = ({ history }: any) => {
-  const ITEM_HEIGHT = 48;
-  const ITEM_PADDING_TOP = 8;
-  const MenuProps = {
-    PaperProps: {
-      style: {
-        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-        width: 250,
-      },
-    },
-  };
+  const cartasState = useSelector(
+    (state: RootStore) => state.cartas.cartas.cartas
+  );
 
   const [roles, setRoles] = useState<any>([]);
   const pedirDatosRoles = async () => {
@@ -124,18 +119,6 @@ const NuevaCarta = ({ history }: any) => {
   //utilizar use dispatch y te crea una funcion
   const dispatch = useDispatch();
 
-  interface stateInterface {
-    cartas: string[];
-    loading?: boolean;
-    error?: boolean;
-  }
-
-  //acceder al state del store y pedir algo almacenado en el store
-  //AGREGAR COMENTADO CUANDO DEVUELVA CARTAS.
-  const cargando = useSelector<stateInterface>((state) => state.loading); //O useSelector((state: RootStore) => state.loading);
-  const error = useSelector<stateInterface>((state) => state.error); //O useSelector((state: RootStore) => state.error);
-  /* const alerta = useSelector((state: RootStore) => state.alerta); */
-
   interface cartaInterface {
     nombreJugador: string;
     apellidoJugador: string;
@@ -186,27 +169,59 @@ const NuevaCarta = ({ history }: any) => {
     const rareza = rarezaArray[0];
     const rolJugador = rolJugadorArray[0];
     const fechaSalida = fechaSalidaArray[0];
-    // crear el nueva carta
-    agregarCarta({
-      nombreJugador,
-      apellidoJugador,
-      equipo,
-      rareza,
-      rolJugador,
-      fechaSalida,
-      foto,
+
+    //verificacion de si la carta que quiere agregar el usuario ya existe.
+    let yaExiste = false;
+    cartasState.map((carta: any) => {
+      if (
+        nombreJugador === carta.nombreJugador &&
+        apellidoJugador === carta.apellidoJugador &&
+        equipo === carta.equipo &&
+        rareza === carta.rareza &&
+        rolJugador === carta.rolJugador &&
+        fechaSalida === moment(carta.fechaSalida).year()
+      ) {
+        const alerta = {
+          msg: "La carta que quiere agregar ya existe",
+        };
+        dispatch(mostrarAlerta(alerta));
+        Swal.fire({
+          icon: "error",
+          title: "Hubo un error",
+          text: "La carta que quiere agregar ya existe",
+        });
+
+        yaExiste = true;
+
+        return;
+      }
     });
+
+    //si no hay errores
+    dispatch(ocultarAlertaAction());
+
+    // crear el nueva carta
+    if (!yaExiste) {
+      agregarCarta({
+        nombreJugador,
+        apellidoJugador,
+        equipo,
+        rareza,
+        rolJugador,
+        fechaSalida,
+        foto,
+      });
+    }
   };
 
   return (
-    <div style={styles.contenedor}>
-      <Card sx={styles.card}>
-        <h2 style={styles.textCard}>Agregar Nueva Carta</h2>
-        {/* {alerta ? <p> {alerta.msg} </p> : null} */}
+    <div style={styleFormulario.contenedor}>
+      <Card sx={styleFormulario.card}>
+        <h2 style={styleFormulario.textCard}>Agregar Nueva Carta</h2>
 
         <form onSubmit={submitNuevaCarta}>
-          <div style={styles.input}>
-            <label style={styles.textCard}>Nombre Jugador</label>
+          <div style={styleFormulario.input}>
+            <label style={styleFormulario.textCard}>Nombre Jugador</label>
             <Input
               placeholder="Nombre Jugador"
               inputProps={ariaLabel}
@@ -216,8 +231,8 @@ const NuevaCarta = ({ history }: any) => {
             />
           </div>
 
-          <div style={styles.input}>
-            <label style={styles.textCard}>Apellido Jugador</label>
+          <div style={styleFormulario.input}>
+            <label style={styleFormulario.textCard}>Apellido Jugador</label>
             <Input
               placeholder="Apellido Jugador"
               inputProps={ariaLabel}
@@ -227,9 +242,12 @@ const NuevaCarta = ({ history }: any) => {
             />
           </div>
 
-          <div style={styles.input}>
+          <div style={styleFormulario.input}>
             <FormControl sx={{ m: 1, width: 240 }}>
-              <InputLabel style={styles.textCard} id="demo-multiple-name-label">
+              <InputLabel
+                style={styleFormulario.textCard}
+                id="demo-multiple-name-label"
+              >
                 Equipo
               </InputLabel>
               <Select
@@ -238,7 +256,6 @@ const NuevaCarta = ({ history }: any) => {
                 multiple
                 value={equipoArray}
                 onChange={handleChangeEquipo}
-                MenuProps={MenuProps}
               >
                 {equipos.map((elemento: any) => (
                   <MenuItem key={elemento} value={elemento.nombre}>
@@ -249,9 +266,12 @@ const NuevaCarta = ({ history }: any) => {
             </FormControl>
           </div>
 
-          <div style={styles.input}>
+          <div style={styleFormulario.input}>
             <FormControl sx={{ m: 1, width: 240 }}>
-              <InputLabel style={styles.textCard} id="demo-multiple-name-label">
+              <InputLabel
+                style={styleFormulario.textCard}
+                id="demo-multiple-name-label"
+              >
                 Rareza
               </InputLabel>
               <Select
@@ -260,7 +280,6 @@ const NuevaCarta = ({ history }: any) => {
                 multiple
                 value={rarezaArray}
                 onChange={handleChangeRareza}
-                MenuProps={MenuProps}
               >
                 {rarezas.map((elemento: any) => (
                   <MenuItem key={elemento} value={elemento.nombre}>
@@ -271,9 +290,12 @@ const NuevaCarta = ({ history }: any) => {
             </FormControl>
           </div>
 
-          <div style={styles.input}>
+          <div style={styleFormulario.input}>
             <FormControl sx={{ m: 1, width: 240 }}>
-              <InputLabel style={styles.textCard} id="demo-multiple-name-label">
+              <InputLabel
+                style={styleFormulario.textCard}
+                id="demo-multiple-name-label"
+              >
                 Rol Jugador
               </InputLabel>
               <Select
@@ -282,7 +304,6 @@ const NuevaCarta = ({ history }: any) => {
                 multiple
                 value={rolJugadorArray}
                 onChange={handleChangeRol}
-                MenuProps={MenuProps}
               >
                 {roles.map((rol: any) => (
                   <MenuItem key={rol} value={rol.nombre}>
@@ -293,9 +314,12 @@ const NuevaCarta = ({ history }: any) => {
             </FormControl>
           </div>
 
-          <div style={styles.input}>
+          <div style={styleFormulario.input}>
             <FormControl sx={{ m: 1, width: 240 }}>
-              <InputLabel style={styles.textCard} id="demo-multiple-name-label">
+              <InputLabel
+                style={styleFormulario.textCard}
+                id="demo-multiple-name-label"
+              >
                 Serie
               </InputLabel>
               <Select
@@ -304,7 +328,6 @@ const NuevaCarta = ({ history }: any) => {
                 multiple
                 value={fechaSalidaArray}
                 onChange={handleChangeSerie}
-                MenuProps={MenuProps}
               >
                 {seriesmap.map((elemento: any) => (
                   <MenuItem key={elemento} value={elemento}>
@@ -315,8 +338,8 @@ const NuevaCarta = ({ history }: any) => {
             </FormControl>
           </div>
 
-          <div style={styles.input}>
-            <label style={styles.textCard}>Foto</label>
+          <div style={styleFormulario.input}>
+            <label style={styleFormulario.textCard}>Foto</label>
             <Input
               placeholder="Foto"
               inputProps={ariaLabel}
@@ -325,7 +348,7 @@ const NuevaCarta = ({ history }: any) => {
               onChange={(e) => guardarFoto(e.target.value)}
             />
           </div>
-          <div style={styles.button}>
+          <div style={styleFormulario.button}>
             <Button
               color="success"
               variant="contained"
@@ -336,44 +359,9 @@ const NuevaCarta = ({ history }: any) => {
             </Button>
           </div>
         </form>
-
-        {cargando ? <p style={styles.msg}>Cargando...</p> : null}
-        {error ? <p style={styles.msg}>Hubo un error</p> : null}
       </Card>
     </div>
   );
-};
-
-const styles = {
-  card: {
-    borderColor: "primary.main",
-    margin: 5,
-    width: 500,
-    bgcolor: "#173351",
-    padding: 2,
-  },
-  textCard: {
-    color: "#eeeee4",
-    justifyContent: "center",
-    display: "flex",
-    marginTop: 20,
-  },
-  input: {
-    justifyContent: "center",
-    display: "grid",
-  },
-  contenedor: {
-    display: "flex",
-    justifyContent: "center",
-  },
-  button: {
-    display: "flex",
-    justifyContent: "center",
-    marginTop: 20,
-  },
-  msg: {
-    backgroundColor: "#d32f2f",
-  },
 };
 
 export default NuevaCarta;
