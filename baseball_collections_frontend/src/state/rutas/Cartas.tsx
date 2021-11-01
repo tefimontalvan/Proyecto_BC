@@ -1,8 +1,8 @@
 import React, { Fragment, useEffect, useState } from "react";
 import Swal from "sweetalert2";
-import moment from "moment";
 import { useHistory } from "react-router-dom";
 import { styleInicio } from "../styles/styles";
+import Carta from "../componentes/Carta";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -15,29 +15,11 @@ import {
 import { RootStore } from "..";
 
 //Material UI.
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-import { IconButton } from "@mui/material";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
+import { cartaInterface } from "../actions/cartaActions";
 
 const Cartas = () => {
-  interface cartaInterface {
-    idCarta: number;
-    nombreJugador: string;
-    apellidoJugador: string;
-    equipo: string;
-    rareza: string;
-    rolJugador: string;
-    fechaSalida: Date;
-    foto: string;
-    activo: boolean;
-  }
-
   const dispatch = useDispatch();
 
   const history = useHistory(); //habilitar history para redireccion
@@ -143,53 +125,11 @@ const Cartas = () => {
       <div style={styleInicio.contenedor as React.CSSProperties}>
         {listaCartas?.map((carta: any) => {
           return (
-            <Card key={carta.idCarta} sx={styleInicio.tarjeta}>
-              <CardMedia
-                component="img"
-                alt="foto jugador"
-                height="140"
-                image={carta.foto}
-              />
-
-              <CardContent>
-                <Typography
-                  gutterBottom
-                  variant="h5"
-                  component="div"
-                  sx={styleInicio.textCard}
-                >
-                  {carta.nombreJugador} {carta.apellidoJugador}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={styleInicio.textCard}
-                >
-                  <p>Rol: {carta.rolJugador}</p>
-                  <p>Equipo: {carta.equipo}</p>
-                  <p>Rareza: {carta.rareza}</p>
-                  <p>Serie: {moment(carta.fechaSalida).year()}</p>
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  color="success"
-                  variant="outlined"
-                  size="small"
-                  onClick={() => redireccionarEdicion(carta)}
-                >
-                  Editar
-                </Button>
-                <Button
-                  color="error"
-                  variant="outlined"
-                  size="small"
-                  onClick={() => confirmarEliminarCarta(carta)}
-                >
-                  Eliminar
-                </Button>
-              </CardActions>
-            </Card>
+            <Carta
+              carta={carta}
+              redireccionarEdicion={redireccionarEdicion}
+              confirmarEliminarCarta={confirmarEliminarCarta}
+            />
           );
         })}
       </div>

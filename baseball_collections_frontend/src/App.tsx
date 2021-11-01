@@ -1,8 +1,8 @@
 import React from "react";
-import Header from "./state/components/Header";
-import Cartas from "./state/components/Cartas";
-import NuevaCarta from "./state/components/NuevaCarta";
-import EditarCarta from "./state/components/EditarCarta";
+import Header from "./state/rutas/Header";
+import Cartas from "./state/rutas/Cartas";
+import NuevaCarta from "./state/rutas/NuevaCarta";
+import EditarCarta from "./state/rutas/EditarCarta";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import "./index.css";
 

@@ -1,51 +1,27 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { editarCartaAction } from "../actions/cartaActions";
-import axios from "axios";
-import moment from "moment";
-import { styleFormulario } from "../styles/styles";
-
 import Card from "@mui/material/Card";
 import Input from "@mui/material/Input";
 import { Button, MenuItem, Select, FormControl } from "@mui/material";
 import { InputLabel } from "@material-ui/core";
+import { cartaInterface } from "../actions/cartaActions";
+import axios from "axios";
+import { useState, useEffect } from "react";
+import moment from "moment";
 
-const EditarCarta = (props: any) => {
-  const dispatch = useDispatch();
+import { PropsWithoutRef } from "react";
+import { styleFormulario } from "../styles/styles";
 
+interface CartaProps {
+  cartaActual: cartaInterface;
+  submitFormulario: (e: any) => void;
+  onChangeFormulario: (e: any) => void;
+}
+
+const Formulario = ({
+  cartaActual,
+  submitFormulario,
+  onChangeFormulario,
+}: PropsWithoutRef<CartaProps>) => {
   const ariaLabel = { "aria-label": "description" };
-
-  const [cartaActual, setCartaActual] = useState<any>({
-    idCarta: 0,
-    nombreJugador: "",
-    apellidoJugador: "",
-    equipo: "",
-    rareza: "",
-    rolJugador: "",
-    fechaSalida: "",
-    foto: "",
-  });
-
-  //PIDE LOS DATOS DE LA CARTA ACTUAL POR ID.
-  const pedirDatos = async () => {
-    const cartaSeleccionada = await axios.get<any>(
-      "http://localhost:4000/inicio/cartas/" + props.match.params.id
-    );
-
-    const cartaData = cartaSeleccionada.data;
-    const momentFecha = moment(cartaData.fechaSalida).year();
-    //AGREGAR COMENTADO CUANDO DEVUELVA CARTAS
-    setCartaActual({
-      idCarta: cartaData.idCarta,
-      nombreJugador: cartaData.nombreJugador,
-      apellidoJugador: cartaData.apellidoJugador,
-      equipo: cartaData.equipo,
-      rareza: cartaData.rareza,
-      rolJugador: cartaData.rolJugador,
-      fechaSalida: momentFecha,
-      foto: cartaData.foto,
-    });
-  };
 
   //PIDE PROPIEDADES DE LA CARTA.
   const [roles, setRoles] = useState<any>([]);
@@ -93,32 +69,18 @@ const EditarCarta = (props: any) => {
   );
 
   useEffect(() => {
-    pedirDatos();
     pedirDatosEquipos();
     pedirDatosRarezas();
     pedirDatosRoles();
     pedirDatosSeries();
   }, []);
 
-  // Leer los datos del formulario
-  const onChangeFormulario = (e: any) => {
-    setCartaActual({
-      ...cartaActual,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const submitEditarCarta = (e: any) => {
-    e.preventDefault();
-    dispatch(editarCartaAction(cartaActual));
-  };
-
   return (
     <div style={styleFormulario.contenedor}>
       <Card sx={styleFormulario.card}>
-        <h2 style={styleFormulario.textCard}>Editar Carta</h2>
+        <h2 style={styleFormulario.textCard}>Agregar Nueva Carta</h2>
 
-        <form onSubmit={submitEditarCarta}>
+        <form onSubmit={submitFormulario}>
           <div style={styleFormulario.input}>
             <label style={styleFormulario.textCard}>Nombre Jugador</label>
             <Input
@@ -156,13 +118,11 @@ const EditarCarta = (props: any) => {
                 value={cartaActual.equipo}
                 onChange={onChangeFormulario}
               >
-                {equipos.map((elemento: any) => {
-                  return (
-                    <MenuItem key={elemento.nombre} value={elemento.nombre}>
-                      {elemento.nombre}
-                    </MenuItem>
-                  );
-                })}
+                {equipos.map((elemento: any) => (
+                  <MenuItem key={elemento} value={elemento.nombre}>
+                    {elemento.nombre}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </div>
@@ -180,13 +140,11 @@ const EditarCarta = (props: any) => {
                 value={cartaActual.rareza}
                 onChange={onChangeFormulario}
               >
-                {rarezas.map((elemento: any) => {
-                  return (
-                    <MenuItem key={elemento.nombre} value={elemento.nombre}>
-                      {elemento.nombre}
-                    </MenuItem>
-                  );
-                })}
+                {rarezas.map((elemento: any) => (
+                  <MenuItem key={elemento} value={elemento.nombre}>
+                    {elemento.nombre}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </div>
@@ -204,13 +162,11 @@ const EditarCarta = (props: any) => {
                 value={cartaActual.rolJugador}
                 onChange={onChangeFormulario}
               >
-                {roles.map((elemento: any) => {
-                  return (
-                    <MenuItem key={elemento.nombre} value={elemento.nombre}>
-                      {elemento.nombre}
-                    </MenuItem>
-                  );
-                })}
+                {roles.map((rol: any) => (
+                  <MenuItem key={rol} value={rol.nombre}>
+                    {rol.nombre}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </div>
@@ -221,20 +177,18 @@ const EditarCarta = (props: any) => {
                 style={styleFormulario.textCard}
                 id="demo-multiple-name-label"
               >
-                Fecha Salida
+                Serie
               </InputLabel>
               <Select
                 name="fechaSalida"
                 value={cartaActual.fechaSalida}
                 onChange={onChangeFormulario}
               >
-                {seriesmap.map((elemento: any) => {
-                  return (
-                    <MenuItem key={elemento} value={elemento}>
-                      {elemento}
-                    </MenuItem>
-                  );
-                })}
+                {seriesmap.map((elemento: any) => (
+                  <MenuItem key={elemento} value={elemento}>
+                    {elemento}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </div>
@@ -257,7 +211,7 @@ const EditarCarta = (props: any) => {
               size="large"
               type="submit"
             >
-              Guardar Cambios
+              Agregar
             </Button>
           </div>
         </form>
@@ -266,4 +220,4 @@ const EditarCarta = (props: any) => {
   );
 };
 
-export default EditarCarta;
+export default Formulario;
